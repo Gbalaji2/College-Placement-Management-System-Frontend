@@ -1,117 +1,113 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import Toast from '../Toast';
-import ModalBox from '../Modal';
-import AddUserTable from '../AddUserTable';
-import { BASE_URL } from '../../config/config';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import Toast from "../Toast";
+import ModalBox from "../Modal";
+import AddUserTable from "../AddUserTable";
+import { BASE_URL } from "../../config/config";
 
 function AddTPO() {
-  document.title = 'CPMS | TPO Users';
-  // tpo users store here
+  document.title = "CPMS | TPO Users";
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // useState for toast display
+  // Toast state
   const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
+  const [toastMessage, setToastMessage] = useState("");
 
-  // useState for Modal display
+  // Modal state
   const [showModal, setShowModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  const fetchUserDetails = async () => {
-    try {
-      const response = await axios.get(`${BASE_URL}/management/tpo-users`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Assuming token is stored in localStorage
-        }
-      });
-
-      if (response.data) {
-        // console.log(response.data.tpoUsers)
-        setUsers(response.data.tpoUsers);
-      } else {
-        console.warn('Response does not contain tpoUsers:', response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching user details", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-  useEffect(() => {
-    fetchUserDetails();
-  }, []);
-
+  // Form state
   const [formOpen, setFormOpen] = useState(false);
   const [data, setData] = useState({
     first_name: "",
     email: "",
     number: "",
-    password: ""
+    password: "",
   });
+
+  const token = localStorage.getItem("token");
+
+  // Fetch TPO users
+  const fetchUserDetails = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/management/tpo-users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUsers(response.data?.tpoUsers || []);
+    } catch (error) {
+      console.error("Error fetching TPO users:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserDetails();
+  }, []);
 
   const handleDataChange = (e) => setData({ ...data, [e.target.name]: e.target.value });
 
+  // Add new TPO
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(`${BASE_URL}/management/addtpo`, data, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data) {
+        setToastMessage(response.data.msg);
+        setShowToast(true);
+        setData({ first_name: "", email: "", number: "", password: "" });
+        setFormOpen(false);
+        fetchUserDetails();
+      }
+    } catch (error) {
+      console.error("Error adding TPO:", error);
+      setToastMessage("Failed to add TPO user!");
+      setShowToast(true);
+    }
+  };
+
+  // Delete TPO
   const handleDeleteUser = (email) => {
     setUserToDelete(email);
     setShowModal(true);
-  }
+  };
 
   const confirmDelete = async () => {
     try {
-      const response = await axios.post(`${BASE_URL}/management/deletetpo`,
+      const response = await axios.post(
+        `${BASE_URL}/management/deletetpo`,
         { email: userToDelete },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          }
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      setShowModal(false);
       if (response.data) {
         setToastMessage(response.data.msg);
         setShowToast(true);
         fetchUserDetails();
       }
     } catch (error) {
-      console.log("AddTPO => confirmDelete ==> ", error);
+      console.error("Error deleting TPO user:", error);
+      setToastMessage("Failed to delete TPO user!");
+      setShowToast(true);
+    } finally {
+      setShowModal(false);
+      setUserToDelete(null);
     }
-  }
+  };
 
   const closeModal = () => {
     setShowModal(false);
     setUserToDelete(null);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post(`${BASE_URL}/management/addtpo`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          }
-        }
-      );
-      if (response.data) {
-        setToastMessage(response.data.msg);
-        setShowToast(true);
-        fetchUserDetails();
-      }
-    } catch (error) {
-      console.log("handleSubmit => AddTPO.jsx ==> ", error);
-    }
-  }
-
-
   return (
     <>
-      {/*  any message here  */}
-      < Toast
+      {/* Toast */}
+      <Toast
         show={showToast}
         onClose={() => setShowToast(false)}
         message={toastMessage}
@@ -119,6 +115,7 @@ function AddTPO() {
         position="top-center"
       />
 
+      {/* Table + Form */}
       <AddUserTable
         users={users}
         loading={loading}
@@ -128,23 +125,18 @@ function AddTPO() {
         data={data}
         handleDataChange={handleDataChange}
         handleSubmit={handleSubmit}
-        showModal={showModal}
-        closeModal={closeModal}
-        confirmDelete={confirmDelete}
-        userToDelete={userToDelete}
         userToAdd={"TPO Admin"}
       />
 
-      {/* ModalBox Component for Delete Confirmation */}
+      {/* Modal for delete confirmation */}
       <ModalBox
         show={showModal}
         close={closeModal}
-        header={"Confirmation"}
+        header="Confirmation"
         body={`Do you want to delete ${userToDelete}?`}
-        btn={"Delete"}
+        btn="Delete"
         confirmAction={confirmDelete}
       />
-
     </>
   );
 }

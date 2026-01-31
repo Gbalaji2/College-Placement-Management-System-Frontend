@@ -1,1 +1,1 @@
-export const BASE_URL = 'https://cpms-backend-r2lk.onrender.com';
+export const BASE_URL = 'https://cpms-backend-r2lk.onrender.com/api/v1';

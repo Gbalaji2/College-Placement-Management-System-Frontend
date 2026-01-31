@@ -49,7 +49,7 @@ function LoginManagement() {
 
     setLoading(true);
     try {
-      const response = await axios.post(`${BASE_URL}/management/login`, formData);
+      const response = await axios.post(`${BASE_URL}/api/v1/management/login`, formData);
       localStorage.setItem('token', response.data.token);
       navigate('/management/dashboard');
     } catch (error) {
