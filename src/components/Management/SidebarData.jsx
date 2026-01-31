@@ -1,7 +1,6 @@
 // Filename: components/Sidebar.jsx
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { SidebarData } from "./SidebarData";
 
 function Sidebar() {
   const location = useLocation();
