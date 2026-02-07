@@ -1,16 +1,15 @@
 import axios from "axios";
-
-const BASE_URL = "https://cpms-backend-r2lk.onrender.com/api/v1/student";
+import { BASE_URL } from "../config/config.jsx";
 
 const login = async (credentials) => {
-  const response = await axios.post(`${BASE_URL}/login`, credentials);
+  const response = await axios.post(`${BASE_URL}/student/login`, credentials);
   localStorage.setItem("token", response.data.token);
-  return response.data; // return user data if needed
+  return response.data;
 };
 
 const signup = async (data) => {
-  const response = await axios.post(`${BASE_URL}/signup`, data);
-  return response.data; // { msg: "User Created!" }
+  const response = await axios.post(`${BASE_URL}/student/signup`, data);
+  return response.data;
 };
 
 const checkAuth = async () => {
@@ -18,7 +17,7 @@ const checkAuth = async () => {
   if (!token) return false;
 
   try {
-    await axios.get(`${BASE_URL}/check-auth`, {
+    await axios.get(`${BASE_URL}/student/check-auth`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return true;
@@ -28,13 +27,6 @@ const checkAuth = async () => {
   }
 };
 
-const logout = () => {
-  localStorage.removeItem("token");
-};
+const logout = () => localStorage.removeItem("token");
 
-export default {
-  login,
-  signup,
-  checkAuth,
-  logout,
-};
+export default { login, signup, checkAuth, logout };

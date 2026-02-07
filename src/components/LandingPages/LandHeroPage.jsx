@@ -17,10 +17,6 @@ function LandingHeroPage() {
       className="flex flex-col justify-center items-center gap-6 h-[85vh] max-md:h-[75vh] bg-cover bg-no-repeat bg-center px-4"
       style={{ backgroundImage: `url(${HeroImg})` }}
     >
-      <h3 className="text-5xl bg-cyan-100 text-black p-3 rounded-full max-md:text-4xl max-sm:text-2xl text-center shadow-md">
-        Welcome to your Future
-      </h3>
-
       <div className="flex flex-col justify-center items-center gap-4 max-md:w-full">
         <input
           type="email"

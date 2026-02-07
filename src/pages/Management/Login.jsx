@@ -1,30 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import Logo from '../../assets/CPMS.png';
-import Toast from '../../components/Toast';
-import isAuthenticated from '../../utility/auth.utility';
-import { Button } from 'react-bootstrap';
-import { BASE_URL } from '../../config/config';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import Logo from "../../assets/CPMS.png";
+import Toast from "../../components/Toast";
+import isAuthenticated from "../../utility/auth.utility";
+import { Button } from "react-bootstrap";
+import { BASE_URL } from "../../config/config";
+import AuthNavbar from "../../components/AuthNavbar";
 
 function LoginManagement() {
-  document.title = 'CPMS | Management Login';
-
   const navigate = useNavigate();
+
   const [isLoading, setLoading] = useState(false);
-
   const [error, setError] = useState({});
-
-  // if login user visit redirect to home page
-  useEffect(() => {
-    if (isAuthenticated()) {
-      navigate("../tpo/dashboard");
-    }
-  }, [navigate]);
-
-  // useState for toast display
   const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
+  const [toastMessage, setToastMessage] = useState("");
+  const [isEyeOpen, setEyeOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -33,46 +24,55 @@ function LoginManagement() {
 
   const { email, password } = formData;
 
+  // Set title
+  useEffect(() => {
+    document.title = "CPMS | Management Login";
+  }, []);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate("../management/dashboard");
+    }
+  }, [navigate]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (e.target.name === 'email') return setError({ ...error, email: '' });
-    if (e.target.name === 'password') return setError({ ...error, password: '' });
-  }
+    setError({ ...error, [e.target.name]: "" });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-
-    if (!formData?.email && !formData?.password) return setError({ email: 'Email Required!', password: 'Password Required!' })
-    if (!formData?.email) return setError({ email: 'Email Required!' })
-    if (!formData?.password) return setError({ password: 'Password Required!' })
+    const newError = {};
+    if (!email) newError.email = "Email Required!";
+    if (!password) newError.password = "Password Required!";
+    if (Object.keys(newError).length > 0) return setError(newError);
 
     setLoading(true);
+
     try {
-      const response = await axios.post(`${BASE_URL}/api/v1/management/login`, formData);
-      localStorage.setItem('token', response.data.token);
-      navigate('/management/dashboard');
-    } catch (error) {
-      if (error.response.data.msg) {
-        setToastMessage(error.response.data.msg);
-        setShowToast(true);
-      }
-      console.log("Error in Management login.jsx => ", error);
+      // ✅ FIXED URL (BASE_URL already contains /api/v1)
+      const response = await axios.post(
+        `${BASE_URL}/management/login`,
+        formData
+      );
+
+      localStorage.setItem("token", response.data.token);
+      navigate("/management/dashboard");
+    } catch (err) {
+      setToastMessage(err?.response?.data?.msg || "Login failed!");
+      setShowToast(true);
+    } finally {
       setLoading(false);
     }
-  }
-
-  // toggle eye
-  const [isEyeOpen, setEyeOpen] = useState(false);
-
-  const handleEye = () => {
-    setEyeOpen(!isEyeOpen);
-  }
-
+  };
 
   return (
     <>
-      {/* for any message "toast" */}
+      {/* ✅ Home + Back */}
+      <AuthNavbar />
+
       <Toast
         show={showToast}
         onClose={() => setShowToast(false)}
@@ -81,52 +81,87 @@ function LoginManagement() {
         position="bottom-end"
       />
 
-      <div className="flex justify-center items-center h-screen bg-gradient-to-r from-cyan-500 from-10% via-purple-400 via-40% to-pink-500 to-100%">
-        <form className="form-signin flex justify-center items-center flex-col gap-3 backdrop-blur-md bg-white/30 border border-white/20 rounded-lg p-8 shadow shadow-red-400 w-1/3 max-lg:w-2/3 max-md:w-3/4 max-[400px]:w-4/5" onSubmit={handleSubmit}>
-          <div className='flex justify-center items-center flex-col'>
-            <img className="mb-4 rounded-xl shadow w-30 h-28 lg:w-40 lg:h-40" src={`${Logo}`} alt="Logo Image" />
-            <h1 className="h3 mb-3 font-weight-normal">Management Log In</h1>
-          </div>
-          <div className="w-full">
-            <label htmlFor="inputEmail" className="sr-only">Email address</label>
-            <input type="email" id="inputEmail" className="form-control ml-1" placeholder="Email address" autoFocus="" fdprocessedid="gwlj3s" autoComplete='email' name='email' value={email} onChange={handleChange} />
-            {/* error for email  */}
-            {<div className='text-red-500 ml-2 text-left'>
-              {error?.email}
-            </div>}
-          </div>
-
-          <div className="w-full">
-            <div className="flex justify-center items-center w-full">
-              <label htmlFor="inputPassword" className="sr-only">Password</label>
-              <input type={`${isEyeOpen ? "text" : "password"}`} id="inputPassword" className="form-control" placeholder="Password" fdprocessedid="9sysne" autoComplete='current-password' name='password' value={password} onChange={handleChange} />
-              <i className={`${isEyeOpen ? "fa-solid fa-eye" : "fa-regular fa-eye-slash"} -ml-6 cursor-pointer`} onClick={handleEye}></i>
-            </div>
-            {/* error for password  */}
-            {<div className='text-red-500 ml-2 text-left'>
-              {error?.password}
-            </div>}
-          </div>
-
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-cyan-500 via-purple-400 to-pink-500 px-4">
+        <form
+          className="flex justify-center items-center flex-col gap-3 backdrop-blur-md bg-white/30 border border-white/20 rounded-lg p-8 shadow shadow-red-400 w-full max-w-md"
+          onSubmit={handleSubmit}
+        >
           <div className="flex justify-center items-center flex-col">
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Loading...' : 'Log In'}
+            <img
+              className="mb-4 rounded-xl shadow w-32 h-32"
+              src={Logo}
+              alt="Logo"
+            />
+            <h1 className="text-xl font-bold text-black">Management Log In</h1>
+          </div>
+
+          {/* Email */}
+          <div className="w-full">
+            <input
+              type="email"
+              className="form-control"
+              placeholder="Email address"
+              autoComplete="email"
+              name="email"
+              value={email}
+              onChange={handleChange}
+            />
+            <div className="text-red-500 text-left text-sm mt-1">
+              {error?.email}
+            </div>
+          </div>
+
+          {/* Password */}
+          <div className="w-full">
+            <div className="flex items-center w-full relative">
+              <input
+                type={isEyeOpen ? "text" : "password"}
+                className="form-control pr-10"
+                placeholder="Password"
+                autoComplete="current-password"
+                name="password"
+                value={password}
+                onChange={handleChange}
+              />
+
+              <i
+                className={`absolute right-3 cursor-pointer ${
+                  isEyeOpen ? "fa-solid fa-eye" : "fa-regular fa-eye-slash"
+                }`}
+                onClick={() => setEyeOpen(!isEyeOpen)}
+              ></i>
+            </div>
+
+            <div className="text-red-500 text-left text-sm mt-1">
+              {error?.password}
+            </div>
+          </div>
+
+          {/* Button */}
+          <div className="flex justify-center items-center flex-col mt-2">
+            <Button type="submit" variant="primary" disabled={isLoading}>
+              {isLoading ? "Loading..." : "Log In"}
             </Button>
           </div>
-          <span className='text-center'>Log In as TPO?
-            <span className='text-blue-500 font-bold cursor-pointer px-1' onClick={() => navigate('../tpo/login')}>
+
+          {/* Switch to TPO */}
+          <span className="text-center text-black mt-2">
+            Log In as TPO?
+            <span
+              className="text-blue-700 font-bold cursor-pointer px-1"
+              onClick={() => navigate("../tpo/login")}
+            >
               Click Here
             </span>
           </span>
-          <p className="text-muted text-center text-gray-400">© College Placement Management System 2024 - 25</p>
+
+          <p className="text-center text-gray-700 mt-3">
+            © College Placement Management System 2025 - 26
+          </p>
         </form>
       </div>
     </>
-  )
+  );
 }
 
-export default LoginManagement
+export default LoginManagement;

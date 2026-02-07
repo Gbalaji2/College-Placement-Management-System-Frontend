@@ -13,7 +13,7 @@ const UpdateJobStatus = lazy(() => import("./components/Students/UpdateJobStatus
 const AddInternship = lazy(() => import("./components/Students/AddInternship.jsx"));
 const MyAppliedJobs = lazy(() => import("./components/Students/MyApplied.jsx"));
 // TPO pages
-const LoginTPO = lazy(() => import("./pages/TPO/Login.jsx"));
+const LoginTPO = lazy(() => import("./pages/TPO/LoginTPO.jsx"));
 const HomeTPO = lazy(() => import('./pages/TPO/Home.jsx'));
 const StudentAccYearTPO = lazy(() => import("./components/TPO/StudentYearAndBranchView.jsx"));
 const PostJobTPO = lazy(() => import("./components/TPO/PostJob.jsx"));
