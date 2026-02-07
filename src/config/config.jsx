@@ -1,1 +1,1 @@
-export const BASE_URL = 'https://cpms-backend-r2lk.onrender.com/api/v1';
+export const BASE_URL = 'https://college-placement-management-system-ubfr.onrender.com/api/v1';
